@@ -1615,169 +1615,6 @@
   // src/api/public-api.ts
   init_live_reload();
 
-  // src/render/template.ts
-  init_live_reload();
-
-  // src/utils/sanitize.ts
-  init_live_reload();
-  function sanitizeUrl(url) {
-    const trimmed = url.trim();
-    const lower = trimmed.toLowerCase();
-    if (lower.startsWith("javascript:") || lower.startsWith("data:") || lower.startsWith("vbscript:")) {
-      console.warn("[wf-algolia] Blocked unsafe URL:", trimmed);
-      return "#";
-    }
-    return trimmed;
-  }
-  function sanitizeHtml(html) {
-    let clean = html.replace(/<(?!\/?(?:em|mark)\b)[^>]*>/gi, "");
-    clean = clean.replace(/<(em|mark)\s+[^>]*>/gi, "<$1>");
-    return clean;
-  }
-  function escapeFilterValue(value) {
-    return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-  }
-  function getNestedValue(obj, path) {
-    return path.split(".").reduce((curr, key) => curr?.[key], obj);
-  }
-
-  // src/render/formatters.ts
-  init_live_reload();
-  function formatValue(value, format) {
-    if (value == null || value === "") return "";
-    switch (format) {
-      case "rating": {
-        const num = parseFloat(value);
-        return isNaN(num) ? "" : `\u2605 ${num.toFixed(1)}`;
-      }
-      case "year": {
-        const str = String(value);
-        if (/^\d{4}$/.test(str)) return str;
-        const date = new Date(str);
-        return isNaN(date.getTime()) ? "" : String(date.getFullYear());
-      }
-      case "currency": {
-        const num = parseFloat(value);
-        return isNaN(num) ? "" : `$${num.toFixed(2)}`;
-      }
-      case "number": {
-        const num = parseFloat(value);
-        return isNaN(num) ? "" : num.toLocaleString();
-      }
-      default:
-        return String(value);
-    }
-  }
-
-  // src/render/condition.ts
-  init_live_reload();
-  var OPERATORS = ["!==", "===", ">=", "<=", ">", "<"];
-  function evaluateCondition(condition, hit) {
-    const opMatch = OPERATORS.find((op) => condition.includes(op));
-    if (!opMatch) {
-      return !!getNestedValue(hit, condition.trim());
-    }
-    const [fieldPart, valuePart] = condition.split(opMatch).map((s) => s.trim());
-    const fieldValue = getNestedValue(hit, fieldPart);
-    const compareValue = valuePart.replace(/^["']|["']$/g, "");
-    const fieldNum = parseFloat(fieldValue);
-    const compareNum = parseFloat(compareValue);
-    const bothNumeric = !isNaN(fieldNum) && !isNaN(compareNum);
-    switch (opMatch) {
-      case "===":
-        return String(fieldValue) === compareValue;
-      case "!==":
-        return String(fieldValue) !== compareValue;
-      case ">":
-        return bothNumeric && fieldNum > compareNum;
-      case ">=":
-        return bothNumeric && fieldNum >= compareNum;
-      case "<":
-        return bothNumeric && fieldNum < compareNum;
-      case "<=":
-        return bothNumeric && fieldNum <= compareNum;
-      default:
-        return false;
-    }
-  }
-
-  // src/utils/dom.ts
-  init_live_reload();
-  function show(el, display = "block") {
-    if (el) el.style.display = display;
-  }
-  function hide(el) {
-    if (el) el.style.display = "none";
-  }
-
-  // src/utils/webflow.ts
-  init_live_reload();
-
-  // node_modules/.pnpm/@finsweet+ts-utils@0.40.0/node_modules/@finsweet/ts-utils/dist/webflow/index.js
-  init_live_reload();
-
-  // node_modules/.pnpm/@finsweet+ts-utils@0.40.0/node_modules/@finsweet/ts-utils/dist/webflow/getSiteId.js
-  init_live_reload();
-  var getSiteId = (page = document) => page.documentElement.getAttribute("data-wf-site");
-
-  // node_modules/.pnpm/@finsweet+ts-utils@0.40.0/node_modules/@finsweet/ts-utils/dist/webflow/restartWebflow.js
-  init_live_reload();
-  var restartWebflow = async (modules) => {
-    const { Webflow } = window;
-    if (!Webflow || !("destroy" in Webflow) || !("ready" in Webflow) || !("require" in Webflow))
-      return;
-    if (modules && !modules.length)
-      return;
-    if (!modules) {
-      Webflow.destroy();
-      Webflow.ready();
-    }
-    if (!modules || modules.includes("ix2")) {
-      const ix2 = Webflow.require("ix2");
-      if (ix2) {
-        const { store, actions } = ix2;
-        const { eventState } = store.getState().ixSession;
-        const stateEntries = Object.entries(eventState);
-        if (!modules)
-          ix2.destroy();
-        ix2.init();
-        await Promise.all(stateEntries.map((state) => store.dispatch(actions.eventStateChanged(...state))));
-      }
-    }
-    if (!modules || modules.includes("commerce")) {
-      const commerce = Webflow.require("commerce");
-      const siteId = getSiteId();
-      if (commerce && siteId) {
-        commerce.destroy();
-        commerce.init({ siteId, apiUrl: "https://render.webflow.com" });
-      }
-    }
-    if (modules?.includes("lightbox"))
-      Webflow.require("lightbox")?.ready();
-    if (modules?.includes("slider")) {
-      const slider = Webflow.require("slider");
-      if (slider) {
-        slider.redraw();
-        slider.ready();
-      }
-    }
-    if (modules?.includes("tabs"))
-      Webflow.require("tabs")?.redraw();
-    return new Promise((resolve) => Webflow.push(() => resolve(void 0)));
-  };
-
-  // src/utils/webflow.ts
-  function restartWebflowInteractions() {
-    try {
-      restartWebflow(["ix2"]);
-    } catch (err) {
-      console.warn("[wf-algolia] Could not restart Webflow interactions:", err);
-    }
-  }
-
-  // src/tracking/insights.ts
-  init_live_reload();
-
   // node_modules/.pnpm/search-insights@2.17.3/node_modules/search-insights/index-browser.mjs
   init_live_reload();
 
@@ -2156,19 +1993,299 @@
   // node_modules/.pnpm/search-insights@2.17.3/node_modules/search-insights/index-browser.mjs
   var index_browser_default = entryBrowser;
 
+  // src/actions/filter-actions.ts
+  init_live_reload();
+
+  // src/filters/filter-state.ts
+  init_live_reload();
+  var FILTER_STATE = {};
+  function updateFilterState(state, field, value, isActive, matchMode, type) {
+    if (!state[field]) {
+      state[field] = { type, match: matchMode, values: /* @__PURE__ */ new Set() };
+    }
+    if (isActive) {
+      state[field].values.add(value);
+    } else {
+      state[field].values.delete(value);
+      if (state[field].values.size === 0) delete state[field];
+    }
+  }
+  function clearFilterState(state) {
+    Object.keys(state).forEach((k) => delete state[k]);
+  }
+
+  // src/core/events.ts
+  init_live_reload();
+  var listeners = /* @__PURE__ */ new Map();
+  function on(event, callback) {
+    if (!listeners.has(event)) listeners.set(event, /* @__PURE__ */ new Set());
+    listeners.get(event).add(callback);
+  }
+  function off(event, callback) {
+    listeners.get(event)?.delete(callback);
+  }
+  function emit(event, ...args) {
+    listeners.get(event)?.forEach((cb) => {
+      try {
+        cb(...args);
+      } catch (err) {
+        console.warn(`[wf-algolia] Event handler error (${event}):`, err);
+      }
+    });
+  }
+
+  // src/actions/filter-actions.ts
+  function syncFilterDOM(state = FILTER_STATE) {
+    document.querySelectorAll('[wf-algolia-element="filter-group"]').forEach((group) => {
+      const field = group.getAttribute("wf-algolia-field") || group.getAttribute("wf-algolia-facet") || "";
+      const activeClass = group.getAttribute("wf-algolia-activeclass") || "is-active";
+      group.querySelectorAll('[wf-algolia-element="filter-item"]').forEach((item) => {
+        const value = item.getAttribute("wf-algolia-value") || "";
+        const entry = state[field];
+        const isActive = entry?.values?.has(value) ?? false;
+        item.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach((input) => {
+          input.checked = isActive;
+        });
+        if (isActive) {
+          item.setAttribute("data-wf-algolia-active", "true");
+        } else {
+          item.removeAttribute("data-wf-algolia-active");
+        }
+        if (isActive) {
+          item.classList.add(activeClass);
+        } else {
+          item.classList.remove(activeClass);
+        }
+        const isRadio = group.getAttribute("wf-algolia-type") === "radio";
+        if (isRadio) {
+          item.setAttribute("aria-selected", String(isActive));
+        } else {
+          item.setAttribute("aria-pressed", String(isActive));
+        }
+      });
+      if (!state[field]) {
+        const minInput = group.querySelector('[wf-algolia-element="range-min"]');
+        const maxInput = group.querySelector('[wf-algolia-element="range-max"]');
+        if (minInput) minInput.value = minInput.min;
+        if (maxInput) maxInput.value = maxInput.max;
+        const display = group.querySelector('[wf-algolia-element="range-display"]');
+        if (display && minInput && maxInput) {
+          display.textContent = `${minInput.min} \u2013 ${maxInput.max}`;
+        }
+      }
+    });
+  }
+  function clearAllFilters(runQuery2) {
+    clearFilterState(FILTER_STATE);
+    syncFilterDOM();
+    emit("filter", FILTER_STATE);
+    runQuery2();
+  }
+  function clearFilterField(field, runQuery2) {
+    delete FILTER_STATE[field];
+    syncFilterDOM();
+    emit("filter", FILTER_STATE);
+    runQuery2();
+  }
+  function setFilterValues(field, values, runQuery2) {
+    FILTER_STATE[field] = { type: "checkbox", match: "or", values: new Set(values) };
+    syncFilterDOM();
+    emit("filter", FILTER_STATE);
+    runQuery2();
+  }
+  function setSearchQuery(query, runQuery2) {
+    const input = document.querySelector(
+      '[wf-algolia-element="browse-search"], [wf-algolia-element="search-input"]'
+    );
+    if (input) input.value = query;
+    emit("search", query);
+    runQuery2();
+  }
+
+  // src/render/template.ts
+  init_live_reload();
+
+  // src/utils/sanitize.ts
+  init_live_reload();
+  function sanitizeUrl(url) {
+    const trimmed = url.trim();
+    const lower = trimmed.toLowerCase();
+    if (lower.startsWith("javascript:") || lower.startsWith("data:") || lower.startsWith("vbscript:")) {
+      console.warn("[wf-algolia] Blocked unsafe URL:", trimmed);
+      return "#";
+    }
+    return trimmed;
+  }
+  function sanitizeHtml(html) {
+    let clean = html.replace(/<(?!\/?(?:em|mark)\b)[^>]*>/gi, "");
+    clean = clean.replace(/<(em|mark)\s+[^>]*>/gi, "<$1>");
+    return clean;
+  }
+  function escapeFilterValue(value) {
+    return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  }
+  function getNestedValue(obj, path) {
+    return path.split(".").reduce((curr, key) => curr?.[key], obj);
+  }
+
+  // src/render/formatters.ts
+  init_live_reload();
+  function formatValue(value, format) {
+    if (value == null || value === "") return "";
+    switch (format) {
+      case "rating": {
+        const num = parseFloat(value);
+        return isNaN(num) ? "" : `\u2605 ${num.toFixed(1)}`;
+      }
+      case "year": {
+        const str = String(value);
+        if (/^\d{4}$/.test(str)) return str;
+        const date = new Date(str);
+        return isNaN(date.getTime()) ? "" : String(date.getFullYear());
+      }
+      case "currency": {
+        const num = parseFloat(value);
+        return isNaN(num) ? "" : `$${num.toFixed(2)}`;
+      }
+      case "number": {
+        const num = parseFloat(value);
+        return isNaN(num) ? "" : num.toLocaleString();
+      }
+      default:
+        return String(value);
+    }
+  }
+
+  // src/render/condition.ts
+  init_live_reload();
+  var OPERATORS = ["!==", "===", ">=", "<=", ">", "<"];
+  function evaluateCondition(condition, hit) {
+    const opMatch = OPERATORS.find((op) => condition.includes(op));
+    if (!opMatch) {
+      return !!getNestedValue(hit, condition.trim());
+    }
+    const [fieldPart, valuePart] = condition.split(opMatch).map((s) => s.trim());
+    const fieldValue = getNestedValue(hit, fieldPart);
+    const compareValue = valuePart.replace(/^["']|["']$/g, "");
+    const fieldNum = parseFloat(fieldValue);
+    const compareNum = parseFloat(compareValue);
+    const bothNumeric = !isNaN(fieldNum) && !isNaN(compareNum);
+    switch (opMatch) {
+      case "===":
+        return String(fieldValue) === compareValue;
+      case "!==":
+        return String(fieldValue) !== compareValue;
+      case ">":
+        return bothNumeric && fieldNum > compareNum;
+      case ">=":
+        return bothNumeric && fieldNum >= compareNum;
+      case "<":
+        return bothNumeric && fieldNum < compareNum;
+      case "<=":
+        return bothNumeric && fieldNum <= compareNum;
+      default:
+        return false;
+    }
+  }
+
+  // src/utils/dom.ts
+  init_live_reload();
+  function show(el, display = "block") {
+    if (el) el.style.display = display;
+  }
+  function hide(el) {
+    if (el) el.style.display = "none";
+  }
+
+  // src/utils/webflow.ts
+  init_live_reload();
+
+  // node_modules/.pnpm/@finsweet+ts-utils@0.40.0/node_modules/@finsweet/ts-utils/dist/webflow/index.js
+  init_live_reload();
+
+  // node_modules/.pnpm/@finsweet+ts-utils@0.40.0/node_modules/@finsweet/ts-utils/dist/webflow/getSiteId.js
+  init_live_reload();
+  var getSiteId = (page = document) => page.documentElement.getAttribute("data-wf-site");
+
+  // node_modules/.pnpm/@finsweet+ts-utils@0.40.0/node_modules/@finsweet/ts-utils/dist/webflow/restartWebflow.js
+  init_live_reload();
+  var restartWebflow = async (modules) => {
+    const { Webflow } = window;
+    if (!Webflow || !("destroy" in Webflow) || !("ready" in Webflow) || !("require" in Webflow))
+      return;
+    if (modules && !modules.length)
+      return;
+    if (!modules) {
+      Webflow.destroy();
+      Webflow.ready();
+    }
+    if (!modules || modules.includes("ix2")) {
+      const ix2 = Webflow.require("ix2");
+      if (ix2) {
+        const { store, actions } = ix2;
+        const { eventState } = store.getState().ixSession;
+        const stateEntries = Object.entries(eventState);
+        if (!modules)
+          ix2.destroy();
+        ix2.init();
+        await Promise.all(stateEntries.map((state) => store.dispatch(actions.eventStateChanged(...state))));
+      }
+    }
+    if (!modules || modules.includes("commerce")) {
+      const commerce = Webflow.require("commerce");
+      const siteId = getSiteId();
+      if (commerce && siteId) {
+        commerce.destroy();
+        commerce.init({ siteId, apiUrl: "https://render.webflow.com" });
+      }
+    }
+    if (modules?.includes("lightbox"))
+      Webflow.require("lightbox")?.ready();
+    if (modules?.includes("slider")) {
+      const slider = Webflow.require("slider");
+      if (slider) {
+        slider.redraw();
+        slider.ready();
+      }
+    }
+    if (modules?.includes("tabs"))
+      Webflow.require("tabs")?.redraw();
+    return new Promise((resolve) => Webflow.push(() => resolve(void 0)));
+  };
+
+  // src/utils/webflow.ts
+  function restartWebflowInteractions() {
+    try {
+      restartWebflow(["ix2"]);
+    } catch (err) {
+      console.warn("[wf-algolia] Could not restart Webflow interactions:", err);
+    }
+  }
+
   // src/tracking/insights.ts
+  init_live_reload();
   var initialized = false;
+  var getBrowseActiveIndex = null;
+  function registerBrowseActiveIndexForInsights(getter) {
+    getBrowseActiveIndex = getter;
+  }
+  function clickTargetHasCustomInsightsHandler(target) {
+    const el = target instanceof Element ? target : target?.parentElement;
+    if (!el) return false;
+    return !!el.closest("[wf-algolia-event], [wf-algolia-conversion]");
+  }
   function initInsights(config) {
     index_browser_default("init", {
       appId: config.appId,
       apiKey: config.searchKey,
-      useCookie: false
+      useCookie: config.insightsCookie
     });
     initialized = true;
     window.aa = index_browser_default;
     document.addEventListener("click", (e) => {
       const card = e.target.closest(".wf-algolia-injected");
       if (!card) return;
+      if (clickTargetHasCustomInsightsHandler(e.target)) return;
       const objectID = card.dataset.wfAlgoliaObjectid;
       const indexName = card.dataset.wfAlgoliaIndex;
       const queryID = card.dataset.wfAlgoliaQueryid;
@@ -2188,7 +2305,7 @@
       if (!group) return;
       const field = group.getAttribute("wf-algolia-field") || group.getAttribute("wf-algolia-facet");
       const value = item.getAttribute("wf-algolia-value");
-      const indexName = group.getAttribute("wf-algolia-index");
+      const indexName = group.closest("[wf-algolia-index]")?.getAttribute("wf-algolia-index") || getBrowseActiveIndex?.() || "";
       if (field && value && indexName) {
         index_browser_default("clickedFilters", {
           index: indexName,
@@ -2209,10 +2326,20 @@
       if (!objectID || !indexName) return;
       switch (eventType) {
         case "click":
-          trackClick({ index: indexName, objectIDs: [objectID], queryID: queryID || void 0, eventName: eventName || void 0 });
+          trackClick({
+            index: indexName,
+            objectIDs: [objectID],
+            queryID: queryID || void 0,
+            eventName: eventName || void 0
+          });
           break;
         case "conversion":
-          trackConversion({ index: indexName, objectIDs: [objectID], queryID: queryID || void 0, eventName: eventName || "Converted" });
+          trackConversion({
+            index: indexName,
+            objectIDs: [objectID],
+            queryID: queryID || void 0,
+            eventName: eventName || "Converted"
+          });
           break;
         case "view":
           trackViewedHits(indexName, [objectID]);
@@ -2228,7 +2355,12 @@
       const indexName = card.dataset?.wfAlgoliaIndex;
       const queryID = card.dataset?.wfAlgoliaQueryid;
       if (objectID && indexName) {
-        trackConversion({ index: indexName, objectIDs: [objectID], eventName, queryID: queryID || void 0 });
+        trackConversion({
+          index: indexName,
+          objectIDs: [objectID],
+          eventName,
+          queryID: queryID || void 0
+        });
       }
     });
   }
@@ -2456,113 +2588,6 @@
     }
   }
 
-  // src/core/events.ts
-  init_live_reload();
-  var listeners = /* @__PURE__ */ new Map();
-  function on(event, callback) {
-    if (!listeners.has(event)) listeners.set(event, /* @__PURE__ */ new Set());
-    listeners.get(event).add(callback);
-  }
-  function off(event, callback) {
-    listeners.get(event)?.delete(callback);
-  }
-  function emit(event, ...args) {
-    listeners.get(event)?.forEach((cb) => {
-      try {
-        cb(...args);
-      } catch (err) {
-        console.warn(`[wf-algolia] Event handler error (${event}):`, err);
-      }
-    });
-  }
-
-  // src/filters/filter-state.ts
-  init_live_reload();
-  var FILTER_STATE = {};
-  function updateFilterState(state, field, value, isActive, matchMode, type) {
-    if (!state[field]) {
-      state[field] = { type, match: matchMode, values: /* @__PURE__ */ new Set() };
-    }
-    if (isActive) {
-      state[field].values.add(value);
-    } else {
-      state[field].values.delete(value);
-      if (state[field].values.size === 0) delete state[field];
-    }
-  }
-  function clearFilterState(state) {
-    Object.keys(state).forEach((k) => delete state[k]);
-  }
-
-  // src/actions/filter-actions.ts
-  init_live_reload();
-  function syncFilterDOM(state = FILTER_STATE) {
-    document.querySelectorAll('[wf-algolia-element="filter-group"]').forEach((group) => {
-      const field = group.getAttribute("wf-algolia-field") || group.getAttribute("wf-algolia-facet") || "";
-      const activeClass = group.getAttribute("wf-algolia-activeclass") || "is-active";
-      group.querySelectorAll('[wf-algolia-element="filter-item"]').forEach((item) => {
-        const value = item.getAttribute("wf-algolia-value") || "";
-        const entry = state[field];
-        const isActive = entry?.values?.has(value) ?? false;
-        item.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach((input) => {
-          input.checked = isActive;
-        });
-        if (isActive) {
-          item.setAttribute("data-wf-algolia-active", "true");
-        } else {
-          item.removeAttribute("data-wf-algolia-active");
-        }
-        if (isActive) {
-          item.classList.add(activeClass);
-        } else {
-          item.classList.remove(activeClass);
-        }
-        const isRadio = group.getAttribute("wf-algolia-type") === "radio";
-        if (isRadio) {
-          item.setAttribute("aria-selected", String(isActive));
-        } else {
-          item.setAttribute("aria-pressed", String(isActive));
-        }
-      });
-      if (!state[field]) {
-        const minInput = group.querySelector('[wf-algolia-element="range-min"]');
-        const maxInput = group.querySelector('[wf-algolia-element="range-max"]');
-        if (minInput) minInput.value = minInput.min;
-        if (maxInput) maxInput.value = maxInput.max;
-        const display = group.querySelector('[wf-algolia-element="range-display"]');
-        if (display && minInput && maxInput) {
-          display.textContent = `${minInput.min} \u2013 ${maxInput.max}`;
-        }
-      }
-    });
-  }
-  function clearAllFilters(runQuery2) {
-    clearFilterState(FILTER_STATE);
-    syncFilterDOM();
-    emit("filter", FILTER_STATE);
-    runQuery2();
-  }
-  function clearFilterField(field, runQuery2) {
-    delete FILTER_STATE[field];
-    syncFilterDOM();
-    emit("filter", FILTER_STATE);
-    runQuery2();
-  }
-  function setFilterValues(field, values, runQuery2) {
-    FILTER_STATE[field] = { type: "checkbox", match: "or", values: new Set(values) };
-    syncFilterDOM();
-    emit("filter", FILTER_STATE);
-    runQuery2();
-  }
-  function setSearchQuery(query, runQuery2) {
-    const input = document.querySelector(
-      '[wf-algolia-element="browse-search"], [wf-algolia-element="search-input"]'
-    );
-    if (input) input.value = query;
-    emit("search", query);
-    runQuery2();
-  }
-
   // src/api/middleware.ts
   init_live_reload();
   var middlewares = [];
@@ -2584,6 +2609,7 @@
       // Event tracking
       trackClick,
       trackConversion,
+      getInsights: () => index_browser_default,
       // Event system
       on,
       off,
@@ -3300,6 +3326,9 @@
       });
     }
     on("refresh", () => runQuery());
+    registerBrowseActiveIndexForInsights(
+      () => browseState.sort || (browseState.mode !== "all" ? browseState.mode : defaultIndex)
+    );
     runQuery();
   }
   function splitFiltersByIndex() {
@@ -3578,6 +3607,7 @@
       appId,
       searchKey,
       insights: script.getAttribute("data-insights") === "true",
+      insightsCookie: script.getAttribute("data-insights-cookie") === "true",
       debounce: parseInt(script.getAttribute("data-debounce") || "250"),
       activeClass: script.getAttribute("data-activeclass") || "is-active",
       hideClass: script.getAttribute("data-hideclass") || "is-hidden"
